@@ -17,6 +17,8 @@ enum {
 };
 
 static bool IS_OPEN = false;
+/* Sensitivity is multiplied with every motion (1.0 normal). */
+static double SPNAV_SENS = 1.0;
 /* HID device for SpaceNavigator mouse */ 
 hid_device *device = NULL;
 
@@ -66,9 +68,9 @@ int read_event(hid_device *device, spnav_event* ev, int ms) {
                 return ev->type;
             }
             ev->motion.type = 1;
-            ev->motion.x = convert_input((buf[1] & 0x0000ff), buf[2]);
-            ev->motion.y = convert_input((buf[3] & 0x0000ff), buf[4]);
-            ev->motion.z = convert_input((buf[5] & 0x0000ff), buf[6]);
+            ev->motion.x = (int) SPNAV_SENS * convert_input((buf[1] & 0x0000ff), buf[2]);
+            ev->motion.y = (int) SPNAV_SENS * convert_input((buf[3] & 0x0000ff), buf[4]);
+            ev->motion.z = (int) SPNAV_SENS * convert_input((buf[5] & 0x0000ff), buf[6]);
             // DEBUG_PRINT("Translation x=%d, y=%d, z=%d\n", ev->motion.x, ev->motion.y, ev->motion.z);
             break;
         case ROTATION:
@@ -77,9 +79,9 @@ int read_event(hid_device *device, spnav_event* ev, int ms) {
                 return ev->type;
             }
             ev->motion.type = 1;
-            ev->motion.rx = convert_input((buf[1] & 0x0000ff), buf[2]);
-            ev->motion.ry = convert_input((buf[3] & 0x0000ff), buf[4]);
-            ev->motion.rz = convert_input((buf[5] & 0x0000ff), buf[6]);
+            ev->motion.rx = (int) SPNAV_SENS * convert_input((buf[1] & 0x0000ff), buf[2]);
+            ev->motion.ry = (int) SPNAV_SENS * convert_input((buf[3] & 0x0000ff), buf[4]);
+            ev->motion.rz = (int) SPNAV_SENS * convert_input((buf[5] & 0x0000ff), buf[6]);
             // DEBUG_PRINT("Rotation rx=%d, ry=%d, rz=%d\n", ev->motion.rx, ev->motion.ry, ev->motion.rz);
             break;
         case BTN:
@@ -152,6 +154,15 @@ int spnav_wait_event_timeout(spnav_event *event, int milliseconds) {
         return -1;
     }
     return read_event(device, event, milliseconds);;
+}
+
+int spnav_sensitivity(double sens) {
+    if (sens < 1.0) {
+        DEBUG_PRINT("Invalid sensitivity value %f", sens);
+        return -1;
+    }
+    SPNAV_SENS = sens;
+    return 0;
 }
 /* 
 int spnav_wait_event(spnav_event *event);

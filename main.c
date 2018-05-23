@@ -147,6 +147,7 @@ int main(int argc, char const *argv[])
     */
    spnav_event ev;
    spnav_open();
+   spnav_sensitivity(0.1);
    for (;;) {
        spnav_wait_event_timeout(&ev, 400);
        

@@ -47,10 +47,10 @@ extern "C" {
 
 int SPNAV_API_EXPORT_CALL spnav_open(void);
 int SPNAV_API_EXPORT_CALL spnav_close(void);
-// TODO : return event type
 int SPNAV_API_EXPORT_CALL spnav_wait_event(spnav_event *event);
 int SPNAV_API_EXPORT_CALL spnav_wait_event_timeout(spnav_event *event, int timeout);
 int SPNAV_API_EXPORT_CALL spnav_sensitivity(double sens);
+int SPNAV_API_EXPORT_CALL spnav_deadzone(int value);
 
 #ifdef __cplusplus
 }

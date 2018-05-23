@@ -19,6 +19,7 @@ enum {
 static bool IS_OPEN = false;
 /* Sensitivity is multiplied with every motion (1.0 normal). */
 static double SPNAV_SENS = 1.0;
+static int SPNAV_DEADZONE_THRESHOLD = 5;
 /* HID device for SpaceNavigator mouse */ 
 hid_device *device = NULL;
 
@@ -63,25 +64,25 @@ int read_event(hid_device *device, spnav_event* ev, int ms) {
 
     switch (ev->type) {
         case TRANSLATION:
-             if (in_deadzone(buf, 4)) {
+             if (in_deadzone(buf, SPNAV_DEADZONE_THRESHOLD)) {
                 ev->type = 0;
                 return ev->type;
             }
             ev->motion.type = 1;
-            ev->motion.x = (int) SPNAV_SENS * convert_input((buf[1] & 0x0000ff), buf[2]);
-            ev->motion.y = (int) SPNAV_SENS * convert_input((buf[3] & 0x0000ff), buf[4]);
-            ev->motion.z = (int) SPNAV_SENS * convert_input((buf[5] & 0x0000ff), buf[6]);
+            ev->motion.x = (int) (SPNAV_SENS * convert_input((buf[1] & 0x0000ff), buf[2]));
+            ev->motion.z = - (int) (SPNAV_SENS * convert_input((buf[3] & 0x0000ff), buf[4]));
+            ev->motion.y = - (int) (SPNAV_SENS * convert_input((buf[5] & 0x0000ff), buf[6]));
             // DEBUG_PRINT("Translation x=%d, y=%d, z=%d\n", ev->motion.x, ev->motion.y, ev->motion.z);
             break;
         case ROTATION:
-            if (in_deadzone(buf, 4)) {
+            if (in_deadzone(buf, SPNAV_DEADZONE_THRESHOLD)) {
                 ev->type = 0;
                 return ev->type;
             }
             ev->motion.type = 1;
-            ev->motion.rx = (int) SPNAV_SENS * convert_input((buf[1] & 0x0000ff), buf[2]);
-            ev->motion.ry = (int) SPNAV_SENS * convert_input((buf[3] & 0x0000ff), buf[4]);
-            ev->motion.rz = (int) SPNAV_SENS * convert_input((buf[5] & 0x0000ff), buf[6]);
+            ev->motion.rx = -(int) (SPNAV_SENS * convert_input((buf[1] & 0x0000ff), buf[2]));
+            ev->motion.rz = -(int) (SPNAV_SENS * convert_input((buf[3] & 0x0000ff), buf[4]));
+            ev->motion.ry = (int) (SPNAV_SENS * convert_input((buf[5] & 0x0000ff), buf[6]));
             // DEBUG_PRINT("Rotation rx=%d, ry=%d, rz=%d\n", ev->motion.rx, ev->motion.ry, ev->motion.rz);
             break;
         case BTN:
@@ -157,11 +158,22 @@ int spnav_wait_event_timeout(spnav_event *event, int milliseconds) {
 }
 
 int spnav_sensitivity(double sens) {
-    if (sens < 1.0) {
-        DEBUG_PRINT("Invalid sensitivity value %f", sens);
+    if (sens <= 0.0) {
+        DEBUG_PRINT("Invalid sensitivity value %f\n", sens);
         return -1;
     }
     SPNAV_SENS = sens;
+    DEBUG_PRINT("Sensitivity set to %f\n", SPNAV_SENS);
+    return 0;
+}
+
+int spnav_deadzone(int value) {
+    if (value < 0) {
+        DEBUG_PRINT("Invalid deadzone value %d\n", value);
+        return -1;
+    }
+    SPNAV_DEADZONE_THRESHOLD = value;
+    DEBUG_PRINT("Deadzone threshold set to %d\n", value);
     return 0;
 }
 /* 

@@ -3,6 +3,7 @@
 
 #define SPNAV_VENDOR_ID 0x046d
 #define SPNAV_PRODUCT_ID 0xc626
+#define SPNAV_NAXIS 6
 
 #ifdef _WIN32
       #define SPNAV_API_EXPORT __declspec(dllexport)
@@ -25,12 +26,12 @@ struct event_motion {
 	int x, y, z;
 	int rx, ry, rz;
 	unsigned int period;
-	int *data;
+	int data[SPNAV_NAXIS];
 };
 
 struct event_button {
 	int type;
-	int press;
+	bool press;
 	int bnum;
 };
 

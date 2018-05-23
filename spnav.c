@@ -37,8 +37,21 @@ int convert_input(int first, unsigned char val) {
     }
 }
 
+bool in_deadzone(unsigned char *data) {
+    /* data[0] is the event type */
+    int i;
+    for (i=1; i<SPNAV_NAXIS; i++) {
+        if (data[i] != 0) {
+            return false;
+        }
+    }
+    DEBUG_PRINT("in_deadzone\n");
+    return true;
+}
+
 int read_event(hid_device *device, spnav_event* ev, int ms) {
     unsigned char buf[64];
+    int i;
     int nbytes = hid_read_timeout(device, buf, sizeof(buf), ms);
     if (nbytes < 0) {
         DEBUG_PRINT("hid_read_timeout() error");
@@ -51,26 +64,42 @@ int read_event(hid_device *device, spnav_event* ev, int ms) {
 
     switch (ev->type) {
         case TRANSLATION:
-            ev->type = 1;
+             if (in_deadzone(buf)) {
+                ev->type = 0;
+                return ev->type;
+            }
+            ev->motion.type = 1;
             ev->motion.x = convert_input((buf[1] & 0x0000ff), buf[2]);
             ev->motion.y = convert_input((buf[3] & 0x0000ff), buf[4]);
             ev->motion.z = convert_input((buf[5] & 0x0000ff), buf[6]);
+            for (i=0; i < SPNAV_NAXIS; i++) {
+                ev->motion.data[i] = buf[i];
+            }
             // DEBUG_PRINT("Translation x=%d, y=%d, z=%d\n", ev->motion.x, ev->motion.y, ev->motion.z);
             break;
         case ROTATION:
-            ev->type = 1;
+            if (in_deadzone(buf)) {
+                ev->type = 0;
+                return ev->type;
+            }
+            ev->motion.type = 1;
             ev->motion.rx = convert_input((buf[1] & 0x0000ff), buf[2]);
             ev->motion.ry = convert_input((buf[3] & 0x0000ff), buf[4]);
             ev->motion.rz = convert_input((buf[5] & 0x0000ff), buf[6]);
+            for (i=0; i < SPNAV_NAXIS; i++) {
+                ev->motion.data[i] = buf[i];
+            }
             // DEBUG_PRINT("Rotation rx=%d, ry=%d, rz=%d\n", ev->motion.rx, ev->motion.ry, ev->motion.rz);
             break;
         case BTN:
-            ev->type = 2;
-            DEBUG_PRINT("Buttons: %d %d\n", /* btn 1 */buf[1] & 0x01, /* btn 2 */ buf[1] & 0x02);
+            ev->button.type = 2;
+            ev->button.press = buf[1] == 0x01;
+            ev->button.bnum = buf[1];
+            //DEBUG_PRINT("Buttons: %d %d\n", /* btn 1 */buf[1] & 0x01, /* btn 2 */ buf[1] & 0x02);
             break;
     }
 
-    return 0;
+    return ev->type;
 }
 
 int set_led(hid_device *dev, char state) {
@@ -81,7 +110,7 @@ int set_led(hid_device *dev, char state) {
                      nbytes, sizeof(led_data));
         return -1;
     }
-    return 0;
+    return nbytes;
 }
 
 int spnav_open() {
@@ -123,17 +152,15 @@ int spnav_wait_event(spnav_event *event) {
         DEBUG_PRINT("spnav_wait_event(): device not connected.\n");
         return -1;
     }
-    read_event(device, event, -1);
-    return 0;
+    return read_event(device, event, -1);;
 }
 
-spnav_wait_event_timeout(spnav_event *event, int milliseconds) {
+int spnav_wait_event_timeout(spnav_event *event, int milliseconds) {
     if (device == NULL) {
         DEBUG_PRINT("spnav_wait_event_timeout(): device not connected.\n");
         return -1;
     }
-    read_event(device, event, milliseconds);
-    return 0;
+    return read_event(device, event, milliseconds);;
 }
 /* 
 int spnav_wait_event(spnav_event *event);

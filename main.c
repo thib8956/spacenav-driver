@@ -148,7 +148,7 @@ int main(int argc, char const *argv[])
    spnav_event ev;
    spnav_open();
    for (;;) {
-       spnav_wait_event(&ev);
+       spnav_wait_event_timeout(&ev, 400);
        
        switch (ev.type) {
            case MOTION:
@@ -156,6 +156,7 @@ int main(int argc, char const *argv[])
                 printf("rx=%d, ry=%d, rz=%d\n", ev.motion.rx, ev.motion.ry, ev.motion.rz);
                 break;
             case BUTTON:
+                printf("bnum=%d, pressed=%d\n", ev.button.bnum, ev.button.press);
                 break;
        }
 

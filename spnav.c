@@ -127,6 +127,14 @@ int spnav_wait_event(spnav_event *event) {
     return 0;
 }
 
+spnav_wait_event_timeout(spnav_event *event, int milliseconds) {
+    if (device == NULL) {
+        DEBUG_PRINT("spnav_wait_event_timeout(): device not connected.\n");
+        return -1;
+    }
+    read_event(device, event, milliseconds);
+    return 0;
+}
 /* 
 int spnav_wait_event(spnav_event *event);
 int spnav_poll_event(spnav_event *event, int timeout); */

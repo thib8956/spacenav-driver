@@ -26,7 +26,7 @@ struct event_motion {
 	int x, y, z;
 	int rx, ry, rz;
 	unsigned int period;
-	int data[SPNAV_NAXIS];
+	int *data;
 };
 
 struct event_button {
@@ -50,9 +50,10 @@ int SPNAV_API_EXPORT_CALL spnav_close(void);
 // TODO : return event type
 int SPNAV_API_EXPORT_CALL spnav_wait_event(spnav_event *event);
 int SPNAV_API_EXPORT_CALL spnav_wait_event_timeout(spnav_event *event, int timeout);
-//spnav_event SPNAV_API_EXPORT_CALL read_event(int timeout);
+int SPNAV_API_EXPORT_CALL spnav_sensitivity(double sens);
 
 #ifdef __cplusplus
 }
 #endif
+
 #endif /* SPNAV_H__ */

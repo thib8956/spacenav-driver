@@ -1,10 +1,13 @@
 TARGET = spnav
 TARGET_LIB = libspnavhdi.so # target lib
-LIBS = -Llib -lhidapi-libusb
+
 CC = gcc
 CFLAGS = -Wall -Wextra -fPIC -pedantic -O2 # C flags for building library
 #CFLAGS = -Wall -Wextra -pedantic -g # C flags for developpement
-LDFLAGS = $(LIBS) -shared # linking flags
+
+LDFLAGS = -Wall -Wextra -O2
+
+LIBS = -Llib -lhidapi-libusb
 RM = rm -f # rm command
 
 .PHONY: all default
@@ -21,10 +24,11 @@ HEADERS = $(wildcard *.h)
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
+	$(CC) $(OBJECTS) -Wall -o $@ $(LIBS)
 
+# Shared Libs
 $(TARGET_LIB): $(OBJECTS)
-	$(CC) ${LDFLAGS} -o $@ $^
+	$(CC) $(LDFLAGS) -shared -fpic -Wl,--no-undefined -o $@ $^ $(LIBS)
 
 .PHONY: clean
 clean:

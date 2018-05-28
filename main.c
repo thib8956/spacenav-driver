@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #define MAX_STR 255
 #define SPNAV_VENDOR_ID 0x046d

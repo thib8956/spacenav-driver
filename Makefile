@@ -3,7 +3,7 @@ TARGET_LIB = libspnavhdi.so # target lib
 
 CC = gcc
 #CFLAGS = -Wall -Wextra -fPIC -pedantic -O2 # C flags for building library
-CFLAGS = -Wall -Wextra -pedantic -g # C flags for developpement
+CFLAGS = -Wall -Wextra -pedantic -g -DDEBUG # C flags for developpement
 
 LDFLAGS = -Wall -Wextra -O2
 

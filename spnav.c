@@ -4,7 +4,6 @@
 #include "spnav.h"
 #include "hidapi.h"
 
-#define DEBUG
 #ifdef DEBUG
 #define DEBUG_PRINT(...)              \
     do {                              \
@@ -113,7 +112,7 @@ int set_led(hid_device *dev, char state) {
     return nbytes;
 }
 
-int spnav_open() {
+int spnav_open(unsigned short vendor_id, unsigned short product_id) {
     DEBUG_PRINT("spnav_open()\n");
     /* Connexion already opened */
     if (IS_OPEN) {
@@ -124,7 +123,7 @@ int spnav_open() {
     hid_init();
     // Open the device using the VID, PID,
     // and optionally the Serial number.
-    device = hid_open(SPNAV_VENDOR_ID, SPNAV_PRODUCT_ID, NULL);
+    device = hid_open(vendor_id, product_id, NULL);
     if (device == NULL) {
         DEBUG_PRINT("hid_open() failed!");
         return -1;

@@ -2,9 +2,6 @@
 #define SPNAV_H__
 
 #include <stdbool.h>
-
-#define SPNAV_VENDOR_ID 0x046d
-#define SPNAV_PRODUCT_ID 0xc626
 #define SPNAV_NAXIS 6
 
 #ifdef _WIN32
@@ -47,7 +44,7 @@ typedef union spnav_event {
 extern "C" {
 #endif
 
-int SPNAV_API_EXPORT_CALL spnav_open(void);
+int SPNAV_API_EXPORT_CALL spnav_open(unsigned short vendor_id, unsigned short product_id);
 int SPNAV_API_EXPORT_CALL spnav_close(void);
 int SPNAV_API_EXPORT_CALL spnav_wait_event(spnav_event *event);
 int SPNAV_API_EXPORT_CALL spnav_wait_event_timeout(spnav_event *event, int timeout);

@@ -15,6 +15,8 @@
     } while (false)
 #endif
 
+#define EVENT_BUF 64
+
 enum {
     TRANSLATION = 1,
     ROTATION = 2,
@@ -56,8 +58,15 @@ bool in_deadzone(unsigned char *data, int threshold) {
 }
 
 int read_event(hid_device *device, spnav_event *ev, int ms) {
-    unsigned char buf[64];
-    int nbytes = hid_read_timeout(device, buf, sizeof(buf), ms);
+    unsigned char buf[EVENT_BUF];
+    int nbytes;
+
+    if (ms == -1) {
+        nbytes = hid_read(device, buf, sizeof(buf));
+    } else {
+        nbytes = hid_read_timeout(device, buf, sizeof(buf), ms);
+    }
+
     if (nbytes < 0) {
         DEBUG_PRINT("hid_read_timeout() error");
         return -1;
@@ -67,6 +76,7 @@ int read_event(hid_device *device, spnav_event *ev, int ms) {
     }
     ev->type = buf[0];
 
+    // Fill spnav_event struct
     switch (ev->type) {
         case TRANSLATION:
             if (in_deadzone(buf, SPNAV_DEADZONE_THRESHOLD)) {
@@ -134,15 +144,26 @@ int spnav_open(unsigned short vendor_id, unsigned short product_id) {
 }
 
 int spnav_close() {
-    DEBUG_PRINT("spnav_close()\n");
     if (!IS_OPEN) {
+        DEBUG_PRINT("Device is not opened!\n");
         return -1;
     }
 
     set_led(device, 0);
     hid_close(device);
+    DEBUG_PRINT("Connection to HID device closed!\n");
     hid_exit();
     IS_OPEN = false;
+    return 0;
+}
+
+int spnav_set_nonblocking(bool nonblock) {
+    int ret = hid_set_nonblocking(device, nonblock);
+    if (ret == -1) {
+        DEBUG_PRINT("Call to hid_set_nonblocking() failed\n");
+        return -1;
+    }
+    DEBUG_PRINT("Nonblocking state is now %d\n", nonblock);
     return 0;
 }
 
@@ -152,7 +173,6 @@ int spnav_wait_event(spnav_event *event) {
         return -1;
     }
     return read_event(device, event, -1);
-    ;
 }
 
 int spnav_wait_event_timeout(spnav_event *event, int milliseconds) {
@@ -161,7 +181,6 @@ int spnav_wait_event_timeout(spnav_event *event, int milliseconds) {
         return -1;
     }
     return read_event(device, event, milliseconds);
-    ;
 }
 
 int spnav_sensitivity(double sens) {

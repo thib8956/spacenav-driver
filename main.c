@@ -24,8 +24,10 @@ int main(int argc, char const* argv[]) {
     spnav_open(SPNAV_VENDOR_ID, SPNAV_3D_EXPLORER_PRODUCT_ID);
     spnav_sensitivity(0.1);
     spnav_deadzone(10);
+    spnav_set_nonblocking(true);
     for (;;) {
-        spnav_wait_event_timeout(&ev, 400);
+        // spnav_wait_event_timeout(&ev, 400);
+        spnav_wait_event(&ev);
 
         switch (ev.type) {
             case MOTION:

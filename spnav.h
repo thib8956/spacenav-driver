@@ -46,6 +46,7 @@ extern "C" {
 
 int SPNAV_API_EXPORT_CALL spnav_open(unsigned short vendor_id, unsigned short product_id);
 int SPNAV_API_EXPORT_CALL spnav_close(void);
+int SPNAV_API_EXPORT_CALL spnav_set_nonblocking(bool nonblock);
 int SPNAV_API_EXPORT_CALL spnav_wait_event(spnav_event *event);
 int SPNAV_API_EXPORT_CALL spnav_wait_event_timeout(spnav_event *event, int timeout);
 int SPNAV_API_EXPORT_CALL spnav_sensitivity(double sens);

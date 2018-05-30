@@ -4,10 +4,16 @@
 #include "spnav.h"
 #include "hidapi.h"
 
+#define DEBUG
 #ifdef DEBUG
-#define DEBUG_PRINT(...) do{ fprintf( stderr, __VA_ARGS__ ); } while( false )
+#define DEBUG_PRINT(...)              \
+    do {                              \
+        fprintf(stderr, __VA_ARGS__); \
+    } while (false)
 #else
-#define DEBUG_PRINT(...) do{ } while ( false )
+#define DEBUG_PRINT(...) \
+    do {                 \
+    } while (false)
 #endif
 
 enum {
@@ -20,7 +26,7 @@ static bool IS_OPEN = false;
 /* Sensitivity is multiplied with every motion (1.0 normal). */
 static double SPNAV_SENS = 1.0;
 static int SPNAV_DEADZONE_THRESHOLD = 5;
-/* HID device for SpaceNavigator mouse */ 
+/* HID device for SpaceNavigator mouse */
 hid_device *device = NULL;
 
 int convert_input(int first, unsigned char val) {
@@ -41,7 +47,7 @@ int convert_input(int first, unsigned char val) {
 bool in_deadzone(unsigned char *data, int threshold) {
     /* data[0] is the event type */
     int i;
-    for (i=1; i<SPNAV_NAXIS; i++) {
+    for (i = 1; i < SPNAV_NAXIS; i++) {
         if (data[i] > threshold) {
             return false;
         }
@@ -50,7 +56,7 @@ bool in_deadzone(unsigned char *data, int threshold) {
     return true;
 }
 
-int read_event(hid_device *device, spnav_event* ev, int ms) {
+int read_event(hid_device *device, spnav_event *ev, int ms) {
     unsigned char buf[64];
     int nbytes = hid_read_timeout(device, buf, sizeof(buf), ms);
     if (nbytes < 0) {
@@ -64,14 +70,14 @@ int read_event(hid_device *device, spnav_event* ev, int ms) {
 
     switch (ev->type) {
         case TRANSLATION:
-             if (in_deadzone(buf, SPNAV_DEADZONE_THRESHOLD)) {
+            if (in_deadzone(buf, SPNAV_DEADZONE_THRESHOLD)) {
                 ev->type = 0;
                 return ev->type;
             }
             ev->motion.type = 1;
-            ev->motion.x = (int) (SPNAV_SENS * convert_input((buf[1] & 0x0000ff), buf[2]));
-            ev->motion.z = - (int) (SPNAV_SENS * convert_input((buf[3] & 0x0000ff), buf[4]));
-            ev->motion.y = - (int) (SPNAV_SENS * convert_input((buf[5] & 0x0000ff), buf[6]));
+            ev->motion.x = (int)(SPNAV_SENS * convert_input((buf[1] & 0x0000ff), buf[2]));
+            ev->motion.z = -(int)(SPNAV_SENS * convert_input((buf[3] & 0x0000ff), buf[4]));
+            ev->motion.y = -(int)(SPNAV_SENS * convert_input((buf[5] & 0x0000ff), buf[6]));
             // DEBUG_PRINT("Translation x=%d, y=%d, z=%d\n", ev->motion.x, ev->motion.y, ev->motion.z);
             break;
         case ROTATION:
@@ -80,9 +86,9 @@ int read_event(hid_device *device, spnav_event* ev, int ms) {
                 return ev->type;
             }
             ev->motion.type = 1;
-            ev->motion.rx = -(int) (SPNAV_SENS * convert_input((buf[1] & 0x0000ff), buf[2]));
-            ev->motion.rz = -(int) (SPNAV_SENS * convert_input((buf[3] & 0x0000ff), buf[4]));
-            ev->motion.ry = (int) (SPNAV_SENS * convert_input((buf[5] & 0x0000ff), buf[6]));
+            ev->motion.rx = -(int)(SPNAV_SENS * convert_input((buf[1] & 0x0000ff), buf[2]));
+            ev->motion.rz = -(int)(SPNAV_SENS * convert_input((buf[3] & 0x0000ff), buf[4]));
+            ev->motion.ry = (int)(SPNAV_SENS * convert_input((buf[5] & 0x0000ff), buf[6]));
             // DEBUG_PRINT("Rotation rx=%d, ry=%d, rz=%d\n", ev->motion.rx, ev->motion.ry, ev->motion.rz);
             break;
         case BTN:
@@ -101,7 +107,7 @@ int set_led(hid_device *dev, char state) {
     int nbytes = hid_write(dev, led_data, sizeof(led_data));
     if (nbytes != sizeof(led_data)) {
         DEBUG_PRINT("set_led(): hid_write() has written %d bytes (should be %ld)\n",
-                     nbytes, sizeof(led_data));
+                    nbytes, sizeof(led_data));
         return -1;
     }
     return nbytes;
@@ -117,7 +123,7 @@ int spnav_open() {
     // Initialize the hidapi library
     hid_init();
     // Open the device using the VID, PID,
-	// and optionally the Serial number.
+    // and optionally the Serial number.
     device = hid_open(SPNAV_VENDOR_ID, SPNAV_PRODUCT_ID, NULL);
     if (device == NULL) {
         DEBUG_PRINT("hid_open() failed!");
@@ -146,7 +152,8 @@ int spnav_wait_event(spnav_event *event) {
         DEBUG_PRINT("spnav_wait_event(): device not connected.\n");
         return -1;
     }
-    return read_event(device, event, -1);;
+    return read_event(device, event, -1);
+    ;
 }
 
 int spnav_wait_event_timeout(spnav_event *event, int milliseconds) {
@@ -154,7 +161,8 @@ int spnav_wait_event_timeout(spnav_event *event, int milliseconds) {
         DEBUG_PRINT("spnav_wait_event_timeout(): device not connected.\n");
         return -1;
     }
-    return read_event(device, event, milliseconds);;
+    return read_event(device, event, milliseconds);
+    ;
 }
 
 int spnav_sensitivity(double sens) {
@@ -176,6 +184,3 @@ int spnav_deadzone(int value) {
     DEBUG_PRINT("Deadzone threshold set to %d\n", value);
     return 0;
 }
-/* 
-int spnav_wait_event(spnav_event *event);
-int spnav_poll_event(spnav_event *event, int timeout); */
